@@ -2,42 +2,92 @@
 using System.Data.SqlClient;
 using System.Configuration;
 using System.Data;
+using System.Net;
 
-namespace DAL
+namespace OkulApp.DAL
 {
-    public class Helper
+    public class Helper : IDisposable
     {
-        SqlConnection cn;
-        SqlCommand cmd;
-        string cstr = ConfigurationManager.ConnectionStrings["cstr"].ConnectionString;
+        public void Dispose()
+        {
+            if (cn != null)
+            {
+                cn.Close();
+                cn.Dispose();
+                cn = null;
+            }
 
+            if (cmd != null)
+            {
+
+                cmd.Dispose();
+                cmd = null;
+            }
+
+        }
+        private static Helper instance;
+        private SqlConnection cn;
+        private SqlCommand cmd;
+        private string cstr = ConfigurationManager.ConnectionStrings["cstr"].ConnectionString;
+        private Helper() { }
+        public static Helper GetInstance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new Helper();
+                }
+                return instance;
+            }
+        }
         public int ExecuteNonQuery(string cmdtext, SqlParameter[] p = null)
         {
-            using (cn = new SqlConnection(cstr))
+            try
             {
-                using (cmd = new SqlCommand(cmdtext, cn))
+                using (cn = new SqlConnection(cstr))
                 {
-                    if (p != null)
+                    using (cmd = new SqlCommand(cmdtext, cn))
                     {
-                        cmd.Parameters.AddRange(p);
+                        if (p != null)
+                        {
+                            cmd.Parameters.AddRange(p);
+                        }
+                        cn.Open();
+                        return cmd.ExecuteNonQuery();
                     }
-                    cn.Open();
-                    return cmd.ExecuteNonQuery();
+
                 }
+            }
+
+            catch (Exception)
+            {
+                throw;
             }
         }
 
         public SqlDataReader ExecuteReader(string cmdtext, SqlParameter[] p = null)
         {
-            cn = new SqlConnection(cstr);
-            cmd = new SqlCommand(cmdtext, cn);
-            if (p != null)
+            try
             {
-                cmd.Parameters.AddRange(p);
+                cn = new SqlConnection(cstr);
+                cmd = new SqlCommand(cmdtext, cn);
+                if (p != null)
+                {
+                    cmd.Parameters.AddRange(p);
+                }
+                cn.Open();
+                return cmd.ExecuteReader(CommandBehavior.CloseConnection);
             }
-            cn.Open();
-            return cmd.ExecuteReader(CommandBehavior.CloseConnection);
+            catch (Exception)
+            {
+
+                throw;
+            }
+            finally { Dispose(); }
+
         }
+
     }
 }
-
+//Helper

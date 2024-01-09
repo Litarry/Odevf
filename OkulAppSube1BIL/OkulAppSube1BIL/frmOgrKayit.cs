@@ -1,4 +1,4 @@
-﻿using OkulApp.MODEL;
+﻿using OkulApp.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,95 +10,131 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using OkulApp.BLL;
+using OkulApp.MODEL;
 
-namespace OkulAppSube1BIL
+namespace OkulApp
 {
-    public partial class frmOgrKayit : Form
-    {
 
-        public int Ogrenciid { get; set; }
-        public frmOgrKayit()
+    public partial class FrmOgrKayit : Form
+    {
+        public int OgrenciId { get; set; }
+        public FrmOgrKayit()
         {
             InitializeComponent();
+
         }
+
+
 
         private void btnKaydet_Click(object sender, EventArgs e)
         {
+            var obl = new OgrenciBL();
             try
             {
-                var obl = new OgrenciBL();
-                bool sonuc = obl.OgrenciEkle(new Ogrenci { Ad = txtAd.Text.Trim(), Soyad = txtSoyad.Text.Trim(), Numara = txtNumara.Text.Trim() });
-                MessageBox.Show(sonuc ? "Ekleme Başarılı!" : "Ekleme Başarısız!!");
+                bool sonuc = obl.OgrenciKaydet(new Ogrenci { Ad = txtAd.Text.Trim(), Soyad = txtSoyad.Text.Trim(), Numara = txtNumara.Text.Trim() });
+                MessageBox.Show(sonuc ? "Ekleme Başarılı" : "Ekleme Başarısız");
+
+                txtAd.Clear();
+                txtSoyad.Clear();
+                txtNumara.Clear();
+
             }
+
             catch (SqlException ex)
             {
                 switch (ex.Number)
                 {
                     case 2627:
-                        MessageBox.Show("Bu numaralı öğrenci daha önce kayıtlı");
+                        MessageBox.Show("Bu Numara daha önce kaydedilmiş!! ");
                         break;
                     default:
-                        MessageBox.Show("Veritabanı hatası");
+                        MessageBox.Show("Veritabanı Hatası!");
                         break;
                 }
             }
             catch (Exception)
             {
-                MessageBox.Show("Bilinmeyen Hata!!");
+
+                MessageBox.Show("Bir Hata Oluştu!");
             }
         }
 
         private void btnBul_Click(object sender, EventArgs e)
         {
-            frmOgrBul frm = new frmOgrBul(this);
-            frm.Show();
-        }
+            try
+            {
+                var frm = new FrmOgrBul(this);
+                frm.Show();
+            }
+            catch (SqlException)
+            {
 
-        private void btnGuncelle_Click(object sender, EventArgs e)
-        {
-            var obl = new OgrenciBL();
-            obl.OgrenciGuncelle(new Ogrenci { Ad = txtAd.Text.Trim(), Soyad = txtSoyad.Text.Trim(), Numara = txtNumara.Text.Trim(), Ogrenciid = Ogrenciid });
+                throw;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         private void btnSil_Click(object sender, EventArgs e)
         {
-            var obl = new OgrenciBL();
-            obl.OgrenciSil(Ogrenciid);
+            try
+            {
+                var obl = new OgrenciBL();
+                MessageBox.Show(obl.OgrenciSil(OgrenciId) ? "Silme Başarılı" : "Başarısız!");
+                txtAd.Clear();
+                txtSoyad.Clear();
+                txtNumara.Clear();
+            }
+            catch (SqlException)
+            {
+
+                throw;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
-    }
 
-    //Güncelleme Başarılı mesajı
-    //Güncelleme butonu aktifliği?
-    //Silme butonu aktifliği
-    //Silme işlemi mesajı
-    //Tüm işlemlerde try-catch
-    //Helperda bulunan connection ve commandlerin dispose edilmesi (IDisposable Pattern)
-    //Singleton Pattern (Sürkeli nesne oluşmadan tek nesne üstünden işlemlerin yapılması)
-    //Öğretmen entity'si için kalan CRUD işlemleri
-
-
-
-    interface ITransfer
-    {
-        int Eft(string gondericiiban, string aliciiban, double tutar);
-        int Havale(string gondericiiban, string aliciiban, double tutar);
-
-    }
-
-    class Transfer : ITransfer
-    {
-        public int Eft(string gondericiiban, string aliciiban, double tutar)
+        private void btnGuncelle_Click(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
-        }
+            try
+            {
+                var obl = new OgrenciBL();
+                MessageBox.Show(obl.OgrenciGuncelle(new Ogrenci { Ad = txtAd.Text.Trim(), Soyad = txtSoyad.Text.Trim(), Numara = txtNumara.Text.Trim(), OgrenciId = OgrenciId }) ? "Güncelleme Başarılı" : "Güncelleme Başarısız!");
+            }
+            catch (SqlException)
+            {
 
-        public int Havale(string gondericiiban, string aliciiban, double tutar)
-        {
-            throw new NotImplementedException();
-        }
+                throw;
+            }
+            catch (Exception)
+            {
 
-        //
+                throw;
+            }
+        }
     }
+
+
+    /* interface TransferIslemleri
+     {
+         int Eft(string gondereniban, string aliciiban, double tutar);
+         int Havale(string gondereniban, string aliciiban, double tutar);
+     }*/
+
+
 }
 
-//Garbage Collector
+//n Katmanlı Mimari
+
+//Öğrenci bulunma durumuna göre Sil ve Güncelle Butonları Aktifliği
+//Textbox'ların text'lerinin temizlenmesi
+//Öğrenci bulunduğunda bul formunun kapanması
+//Try-Catch'ler Katmanlar arası exception yönetimi
+//Dispose Pattern - IDisposeble Interface
+//Singleton Design Pattern
